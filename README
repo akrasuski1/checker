@@ -1,0 +1,31 @@
+Example usage:
+
+./run.py examples/actest.out
+
+
+This command will run the tests stored in in/ folder, pass them through actest.out program, and store results in prog_out/ directory. Then it will compare them to expected output stored in out/ directory, and will evaluate it.
+Note that any differences in whitespace are neglected.
+You may specify a different time limit (default is 2.0 seconds) by writing a number before program:
+./run.py 3.5 examples/actest.out
+will make it run for 3.5s at most.
+
+
+Example output:
+
+Testing test1.in:
+Time: 0.00s
+Memory: 1352kB
+Correct
+
+Testing test2.in:
+Time: 0.00s
+Memory: 1452kB
+Correct
+
+Statistics:
+========================
+2 x Correct
+0 x Wrong Answer
+0 x Time Limit Exceeded
+========================
+
