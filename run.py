@@ -24,15 +24,14 @@ class Command(object):
 	
 	def run(self):
 		def target():
-			self.process = subprocess.Popen(self.cmd, shell=True)
+			self.process = subprocess.Popen(self.cmd,shell=True,preexec_fn=os.setsid)
 			self.process.communicate()
-
+			
 		thread = threading.Thread(target=target)
 		thread.start()
-
 		thread.join(time_limit)
 		if thread.is_alive():
-			self.process.terminate()
+			os.killpg(self.process.pid,signal.SIGTERM)
 			thread.join()
 			return 1
 		return 0
