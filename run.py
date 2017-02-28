@@ -5,16 +5,20 @@ import subprocess, threading
 import signal
 import re
 
-in_dir="in/"
-expected_out_dir="out/"
+CURRENT_WORKING_DIRECTORY=os.getcwd()
+SCRIPT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+
 IN_FILE_PATTERN=re.compile("test(\d+?).in")
 OUT_FILE_PATTERN=re.compile("test(\d+?).out")
-prog_out_dir="prog_out/"
-timer_file="tmp/timer"
-diff_file="tmp/difference"
-diff_tmp1_file="tmp/tmp1"
-diff_tmp2_file="tmp/tmp2"
-suffix=".out"
+
+in_dir=os.path.join(CURRENT_WORKING_DIRECTORY,"in/")
+expected_out_dir=os.path.join(CURRENT_WORKING_DIRECTORY,"out/")
+
+prog_out_dir=os.path.join(SCRIPT_DIRECTORY,"prog_out/")
+timer_file=os.path.join(SCRIPT_DIRECTORY,"tmp/timer")
+diff_file=os.path.join(SCRIPT_DIRECTORY,"tmp/difference")
+diff_tmp1_file=os.path.join(SCRIPT_DIRECTORY,"tmp/tmp1")
+diff_tmp2_file=os.path.join(SCRIPT_DIRECTORY,"tmp/tmp2")
 default_time_limit=2
 
 time_limit=default_time_limit
