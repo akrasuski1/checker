@@ -2,6 +2,7 @@
 import sys
 import os
 import subprocess, threading
+import signal
 
 in_dir="in/"
 expected_out_dir="out/"
