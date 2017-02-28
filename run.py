@@ -3,9 +3,12 @@ import sys
 import os
 import subprocess, threading
 import signal
+import re
 
 in_dir="in/"
 expected_out_dir="out/"
+IN_FILE_PATTERN=re.compile("test(\d+?).in")
+OUT_FILE_PATTERN=re.compile("test(\d+?).out")
 prog_out_dir="prog_out/"
 timer_file="tmp/timer"
 diff_file="tmp/difference"
@@ -42,6 +45,7 @@ def run(com):
 	return command.run()
 
 def run_test(prog,file_in,file_out_prog):
+	# type: (str, str, str) -> int
 	command="time -f \"Time: %es\\nMemory: %MkB\" -o "+timer_file+" ./"+prog+" < "+file_in
 	command=command+" > "+file_out_prog
 	if run(command):
@@ -96,13 +100,18 @@ files=os.listdir(prog_out_dir)
 for f in files:
 	os.remove(prog_out_dir+f)
 
-files=os.listdir(in_dir)
-files.sort()
-for f in files:
+input_files=[input_file for input_file in os.listdir(in_dir) if IN_FILE_PATTERN.match(input_file)]
+input_files.sort(key = lambda file_name: int(IN_FILE_PATTERN.match(file_name).group(1)))
+for f in input_files:
 	print "Testing "+f+":"
-	fi=in_dir+f
-	fo=expected_out_dir+os.path.splitext(f)[0]+suffix
-	fop=prog_out_dir+os.path.splitext(f)[0]+suffix
+	fi=os.path.join(in_dir,f)
+	id=IN_FILE_PATTERN.match(f).group(1)
+	out_file_name=OUT_FILE_PATTERN.pattern.replace("(\d+?)",id)
+	fo = os.path.join(expected_out_dir, out_file_name)
+	if not os.path.isfile(fo):
+		print "output file missing - skipping this testcase\n"
+		continue
+	fop=os.path.join(prog_out_dir,out_file_name)
 	if run_test(prog_name,fi,fop):
 		tle=tle+1
 		continue
