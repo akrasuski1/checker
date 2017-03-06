@@ -8,8 +8,9 @@ import re
 CURRENT_WORKING_DIRECTORY=os.getcwd()
 SCRIPT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 
-IN_FILE_PATTERN=re.compile("test(\d+?).in")
-OUT_FILE_PATTERN=re.compile("test(\d+?).out")
+UNIQUE_ID_PATTERN="(\d+?)"
+IN_FILE_PATTERN=re.compile("test" + UNIQUE_ID_PATTERN + ".in")
+OUT_FILE_PATTERN=re.compile("test" + UNIQUE_ID_PATTERN + ".out")
 
 in_dir=os.path.join(CURRENT_WORKING_DIRECTORY,"in/")
 expected_out_dir=os.path.join(CURRENT_WORKING_DIRECTORY,"out/")
@@ -22,6 +23,11 @@ diff_tmp2_file=os.path.join(SCRIPT_DIRECTORY,"tmp/tmp2")
 default_time_limit=2
 
 time_limit=default_time_limit
+
+def get_file_with_output_name(file_with_input_name):
+	# type: (str) -> str
+	input_file_unique_id = IN_FILE_PATTERN.match(file_with_input_name).group(1)
+	return OUT_FILE_PATTERN.pattern.replace(UNIQUE_ID_PATTERN, input_file_unique_id)
 
 # Functions and utilities
 
@@ -85,48 +91,46 @@ def compare(file_out,file_out_prog):
 def usage():
 	print "Usage: "+sys.argv[0]+" [time_limit_in_seconds] filename.out"
 
-# Entry point
+if __name__ == "__main__":
+	if len(sys.argv)<2 or len(sys.argv)>3:
+		usage()
+		exit(2)
 
-if len(sys.argv)<2 or len(sys.argv)>3:
-	usage()
-	exit(2)
+	if len(sys.argv)==3:
+		time_limit=float(sys.argv[1])
 
-if len(sys.argv)==3:
-	time_limit=float(sys.argv[1])
+	prog_name=sys.argv[-1]
+	print ""
+	correct=0
+	wa=0
+	tle=0
 
-prog_name=sys.argv[-1]
-print ""
-correct=0
-wa=0
-tle=0
+	files=os.listdir(prog_out_dir)
+	for f in files:
+		os.remove(prog_out_dir+f)
 
-files=os.listdir(prog_out_dir)
-for f in files:
-	os.remove(prog_out_dir+f)
+	input_files=[input_file for input_file in os.listdir(in_dir) if IN_FILE_PATTERN.match(input_file)]
+	input_files.sort(key = lambda file_name: int(IN_FILE_PATTERN.match(file_name).group(1)))
+	for f in input_files:
+		print "Testing "+f+":"
+		fi=os.path.join(in_dir,f)
+		out_file_name=get_file_with_output_name(f)
+		fo = os.path.join(expected_out_dir, out_file_name)
+		if not os.path.isfile(fo):
+			print "output file missing - skipping this testcase\n"
+			continue
+		fop=os.path.join(prog_out_dir,out_file_name)
+		if run_test(prog_name,fi,fop):
+			tle=tle+1
+			continue
+		if compare(fo,fop):
+			correct=correct+1
+		else:
+			wa=wa+1
 
-input_files=[input_file for input_file in os.listdir(in_dir) if IN_FILE_PATTERN.match(input_file)]
-input_files.sort(key = lambda file_name: int(IN_FILE_PATTERN.match(file_name).group(1)))
-for f in input_files:
-	print "Testing "+f+":"
-	fi=os.path.join(in_dir,f)
-	id=IN_FILE_PATTERN.match(f).group(1)
-	out_file_name=OUT_FILE_PATTERN.pattern.replace("(\d+?)",id)
-	fo = os.path.join(expected_out_dir, out_file_name)
-	if not os.path.isfile(fo):
-		print "output file missing - skipping this testcase\n"
-		continue
-	fop=os.path.join(prog_out_dir,out_file_name)
-	if run_test(prog_name,fi,fop):
-		tle=tle+1
-		continue
-	if compare(fo,fop):
-		correct=correct+1
-	else:
-		wa=wa+1
-
-print "Statistics:"
-print "========================"
-print str(correct)+" x Correct"
-print str(wa)+" x Wrong Answer"
-print str(tle)+" x Time Limit Exceeded"
-print "========================"
+	print "Statistics:"
+	print "========================"
+	print str(correct)+" x Correct"
+	print str(wa)+" x Wrong Answer"
+	print str(tle)+" x Time Limit Exceeded"
+	print "========================"
